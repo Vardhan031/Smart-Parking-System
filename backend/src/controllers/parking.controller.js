@@ -1,4 +1,4 @@
-const ParkingService = require("../services/Parking.service.js");
+const ParkingService = require("../services/parking.service.js");
 
 class ParkingController {
     static async entry(req, res) {
