@@ -1,5 +1,5 @@
 import { Outlet } from "react-router-dom"
-import Sidebar from "../components/sideBar/SideBar"
+import SideBar from "../components/sideBar/SideBar"
 
 export default function AppLayout() {
     return (
@@ -19,7 +19,7 @@ export default function AppLayout() {
                     bg-white/[0.03]
                     border-r border-white/10
                 ">
-                    <Sidebar />
+                    <SideBar />
                 </aside>
 
                 {/* Scrollable Main Content */}
