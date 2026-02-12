@@ -2,12 +2,11 @@ const ParkingSession = require("../models/ParkingSession");
 const ParkingSlot = require("../models/ParkingSlot");
 
 class ParkingService {
+
     /**
-     * ENTRY FLOW
-     * Handles vehicle entry into parking
+     * 🚗 ENTRY FLOW
      */
     static async handleEntry({ plateNumber, lotId, vehicleType = "CAR" }) {
-        // Normalize plate number
         plateNumber = plateNumber.trim().toUpperCase();
 
         // 1️⃣ Check if vehicle already inside
@@ -38,14 +37,13 @@ class ParkingService {
             };
         }
 
-        // 3️⃣ Create parking session
+        // 3️⃣ Create session
         const session = await ParkingSession.create({
             plateNumber,
             lotId,
             slotNumber: availableSlot.slotNumber,
             entryTime: new Date(),
-            status: "IN",
-            paymentStatus: "PENDING"
+            status: "IN"
         });
 
         // 4️⃣ Occupy slot
@@ -53,7 +51,6 @@ class ParkingService {
         availableSlot.currentSession = session._id;
         await availableSlot.save();
 
-        // 5️⃣ Allow entry
         return {
             success: true,
             message: "Entry allowed",
@@ -65,6 +62,10 @@ class ParkingService {
         };
     }
 
+
+    /**
+     * 🚗 EXIT FLOW
+     */
     static async handleExit({ plateNumber, lotId }) {
         plateNumber = plateNumber.trim().toUpperCase();
 
@@ -83,18 +84,12 @@ class ParkingService {
             };
         }
 
-        // 2️⃣ Calculate duration
-        const exitTime = new Date();
-        const durationMs = exitTime - session.entryTime;
-        const durationMinutes = Math.ceil(durationMs / (1000 * 60));
-
-        // 3️⃣ Update session
-        session.exitTime = exitTime;
-        session.durationMinutes = durationMinutes;
+        // 2️⃣ Update session (duration auto-calculated in model)
+        session.exitTime = new Date();
         session.status = "OUT";
         await session.save();
 
-        // 4️⃣ Release slot
+        // 3️⃣ Release slot
         const slot = await ParkingSlot.findOne({
             lotId,
             slotNumber: session.slotNumber
@@ -106,18 +101,16 @@ class ParkingService {
             await slot.save();
         }
 
-        // 5️⃣ Allow exit
         return {
             success: true,
             message: "Exit allowed",
             action: "OPEN_EXIT_GATE",
             data: {
                 slotNumber: session.slotNumber,
-                durationMinutes
+                durationMinutes: session.durationMinutes
             }
         };
     }
-
 }
 
 module.exports = ParkingService;

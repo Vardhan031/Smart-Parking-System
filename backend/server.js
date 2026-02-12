@@ -6,6 +6,7 @@ const parkingRoutes = require("./src/routes/parking.routes.js");
 const authRoutes = require("./src/routes/auth.routes.js");
 const dashboardRoutes = require("./src/routes/dashboard.routes.js");
 const adminRoutes = require("./src/routes/admin.routes.js");
+const sessionRoutes = require("./src/routes/sessions.routes.js");
 
 const app = express();
 
@@ -28,6 +29,9 @@ app.use("/api/auth", authRoutes);
 app.use("/api/dashboard", dashboardRoutes);
 
 app.use("/api/admin", adminRoutes);
+
+app.use("/api/sessions", sessionRoutes);
+
 
 
 

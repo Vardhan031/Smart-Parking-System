@@ -7,53 +7,43 @@ const parkingSessionSchema = new mongoose.Schema(
             required: true,
             uppercase: true,
             trim: true,
-            index: true
+            index: true,
         },
 
         lotId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "ParkingLot",
             required: true,
-            index: true
+            index: true,
         },
 
         slotNumber: {
             type: Number,
-            required: true
+            required: true,
         },
 
         entryTime: {
             type: Date,
-            required: true
+            required: true,
+            default: Date.now,
         },
 
         exitTime: {
             type: Date,
-            default: null
+            default: null,
         },
 
         durationMinutes: {
             type: Number,
-            default: null
-        },
-
-        amount: {
-            type: Number,
-            default: 0
+            default: null,
         },
 
         status: {
             type: String,
-            enum: ["IN", "EXIT_PENDING", "PAID", "OUT"],
+            enum: ["IN", "OUT"],
             default: "IN",
-            index: true
+            index: true,
         },
-
-        paymentStatus: {
-            type: String,
-            enum: ["PENDING", "PAID"],
-            default: "PENDING"
-        }
     },
     { timestamps: true }
 );
@@ -63,8 +53,17 @@ parkingSessionSchema.index(
     { plateNumber: 1, status: 1 },
     {
         unique: true,
-        partialFilterExpression: { status: "IN" }
+        partialFilterExpression: { status: "IN" },
     }
 );
+
+// 🔥 Auto-calculate duration on exit
+parkingSessionSchema.pre("save", function (next) {
+    if (this.status === "OUT" && this.exitTime && this.entryTime) {
+        const diff = this.exitTime - this.entryTime;
+        this.durationMinutes = Math.ceil(diff / (1000 * 60));
+    }
+    next();
+});
 
 module.exports = mongoose.model("ParkingSession", parkingSessionSchema);
