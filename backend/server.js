@@ -7,6 +7,9 @@ const authRoutes = require("./src/routes/auth.routes.js");
 const dashboardRoutes = require("./src/routes/dashboard.routes.js");
 const adminRoutes = require("./src/routes/admin.routes.js");
 const sessionRoutes = require("./src/routes/sessions.routes.js");
+const userAuthRoutes = require("./src/routes/userAuth.routes.js");
+const userWalletRoutes = require("./src/routes/userWallet.routes.js");
+const userAppRoutes = require("./src/routes/userApp.routes.js");
 
 const app = express();
 
@@ -31,6 +34,12 @@ app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.use("/api/sessions", sessionRoutes);
+
+app.use("/api/user/auth", userAuthRoutes);
+
+app.use("/api/user/wallet", userWalletRoutes);
+
+app.use("/api/user", userAppRoutes);
 
 
 

@@ -5,13 +5,12 @@ const requestMeta = (req) => ({
     ip: req.ip
 });
 
-const adminAuth = (req, res, next) => {
+const userAuth = (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
 
-        // Expect: Authorization: Bearer <token>
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
-            console.warn("[ADMIN AUTH MIDDLEWARE] Missing or invalid authorization header", {
+            console.warn("[USER AUTH MIDDLEWARE] Missing or invalid authorization header", {
                 ...requestMeta(req),
                 hasHeader: !!authHeader
             });
@@ -25,12 +24,11 @@ const adminAuth = (req, res, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // Only ADMIN allowed
-        if (decoded.role !== "ADMIN") {
-            console.warn("[ADMIN AUTH MIDDLEWARE] Role mismatch", {
+        if (decoded.role !== "USER") {
+            console.warn("[USER AUTH MIDDLEWARE] Role mismatch", {
                 ...requestMeta(req),
                 role: decoded.role,
-                adminId: decoded.id
+                userId: decoded.id
             });
             return res.status(403).json({
                 success: false,
@@ -38,16 +36,15 @@ const adminAuth = (req, res, next) => {
             });
         }
 
-        // Attach admin info to request
-        req.admin = decoded;
-        console.info("[ADMIN AUTH MIDDLEWARE] Authorized", {
+        req.user = { id: decoded.id, role: decoded.role };
+        console.info("[USER AUTH MIDDLEWARE] Authorized", {
             ...requestMeta(req),
-            adminId: decoded.id
+            userId: decoded.id
         });
 
         next();
     } catch (error) {
-        console.error("[ADMIN AUTH MIDDLEWARE] Verification error", {
+        console.error("[USER AUTH MIDDLEWARE] Verification error", {
             ...requestMeta(req),
             message: error.message
         });
@@ -58,4 +55,4 @@ const adminAuth = (req, res, next) => {
     }
 };
 
-module.exports = adminAuth;
+module.exports = userAuth;
