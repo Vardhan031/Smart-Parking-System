@@ -3,7 +3,7 @@ const ParkingSession = require("../models/ParkingSession");
 class SessionController {
     static async getSessions(req, res) {
         try {
-            const { status, plateNumber, lotId } = req.query;
+            const { status, plateNumber, lotId, limit = 20, offset = 0 } = req.query;
 
             const filter = {};
 
@@ -19,12 +19,17 @@ class SessionController {
                 filter.lotId = lotId;
             }
 
+            const totalCount = await ParkingSession.countDocuments(filter);
+
             const sessions = await ParkingSession.find(filter)
                 .populate("lotId", "name location")
-                .sort({ entryTime: -1 });
+                .sort({ entryTime: -1 })
+                .skip(Number(offset))
+                .limit(Number(limit));
 
             return res.status(200).json({
                 success: true,
+                totalCount,
                 count: sessions.length,
                 data: sessions,
             });

@@ -19,5 +19,13 @@ router.get(
     AdminController.getActiveSessionBySlot
 )
 
+// User management
+router.get("/users", adminAuth, AdminController.listUsers);
+
+// Vehicle registry
+router.get("/vehicles", adminAuth, AdminController.listVehicles);
+
+// Wallet transactions
+router.get("/transactions", adminAuth, AdminController.listTransactions);
 
 module.exports = router;

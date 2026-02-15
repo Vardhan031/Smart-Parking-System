@@ -17,6 +17,39 @@ router.get("/sessions/history", userAuth, UserSessionController.getSessionHistor
 router.post("/vehicles", userAuth, UserVehicleController.linkVehicle);
 router.delete("/vehicles/:plate", userAuth, UserVehicleController.unlinkVehicle);
 
+// User profile
+router.get("/profile", userAuth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id).select(
+            "name email phone vehiclePlates"
+        );
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found",
+            });
+        }
+
+        return res.json({
+            success: true,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                phone: user.phone || null,
+                vehiclePlates: user.vehiclePlates,
+            },
+        });
+    } catch (err) {
+        console.error("USER PROFILE ERROR:", err);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error",
+        });
+    }
+});
+
 // FCM token registration
 router.post("/fcm-token", userAuth, async (req, res) => {
     try {
