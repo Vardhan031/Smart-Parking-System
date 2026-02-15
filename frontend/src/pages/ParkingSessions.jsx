@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from "react";
 import api from "../services/api";
 
+const PAGE_SIZE = 15;
+
 const ParkingSessions = () => {
     const [activeTab, setActiveTab] = useState("IN");
     const [sessions, setSessions] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [totalCount, setTotalCount] = useState(0);
+    const [page, setPage] = useState(0);
 
-    const fetchSessions = async (status) => {
+    const fetchSessions = async (status, currentPage) => {
         try {
             setLoading(true);
             setError("");
 
-            const res = await api.get(`/sessions?status=${status}`);
+            const offset = currentPage * PAGE_SIZE;
+            const res = await api.get(
+                `/sessions?status=${status}&limit=${PAGE_SIZE}&offset=${offset}`
+            );
             setSessions(res.data.data || []);
+            setTotalCount(res.data.totalCount || res.data.count || 0);
         } catch (err) {
             console.error("Fetch Sessions Error:", err);
             setError("Failed to fetch sessions");
@@ -23,12 +31,28 @@ const ParkingSessions = () => {
     };
 
     useEffect(() => {
-        fetchSessions(activeTab);
+        setPage(0);
+        fetchSessions(activeTab, 0);
     }, [activeTab]);
+
+    useEffect(() => {
+        fetchSessions(activeTab, page);
+    }, [page]);
+
+    const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
     const formatDate = (date) => {
         if (!date) return "-";
         return new Date(date).toLocaleString();
+    };
+
+    const paymentBadge = (status) => {
+        const styles = {
+            PAID: "bg-emerald-500/20 text-emerald-400",
+            UNPAID: "bg-amber-500/20 text-amber-400",
+            NO_USER: "bg-neutral-500/20 text-neutral-400"
+        };
+        return styles[status] || "bg-neutral-500/20 text-neutral-400";
     };
 
     return (
@@ -95,53 +119,101 @@ const ParkingSessions = () => {
                 )}
 
                 {!loading && sessions.length > 0 && (
-                    <table className="w-full text-left border-collapse">
-                        <thead>
-                            <tr className="border-b border-white/10 text-gray-400 text-sm">
-                                <th className="py-4">Plate</th>
-                                <th>Lot</th>
-                                <th>Slot</th>
-                                <th>Entry Time</th>
-                                <th>Exit Time</th>
-                                <th>Duration (min)</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-                            {sessions.map((session) => (
-                                <tr
-                                    key={session._id}
-                                    className="border-b border-white/5 hover:bg-white/5 transition-all duration-200"
-                                >
-                                    <td className="py-4 font-semibold tracking-wide">
-                                        {session.plateNumber}
-                                    </td>
-
-                                    <td>{session.lotId?.name || "N/A"}</td>
-
-                                    <td>{session.slotNumber}</td>
-
-                                    <td>{formatDate(session.entryTime)}</td>
-
-                                    <td>{formatDate(session.exitTime)}</td>
-
-                                    <td>{session.durationMinutes ?? "-"}</td>
-
-                                    <td>
-                                        <span
-                                            className={`px-3 py-1 text-xs rounded-full font-medium ${session.status === "IN"
-                                                ? "bg-blue-500/20 text-blue-400"
-                                                : "bg-green-500/20 text-green-400"
-                                                }`}
-                                        >
-                                            {session.status}
-                                        </span>
-                                    </td>
+                    <>
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-white/10 text-gray-400 text-sm">
+                                    <th className="py-4">Plate</th>
+                                    <th>Lot</th>
+                                    <th>Slot</th>
+                                    <th>Entry Time</th>
+                                    <th>Exit Time</th>
+                                    <th>Duration (min)</th>
+                                    <th>Fare</th>
+                                    <th>Payment</th>
+                                    <th>Status</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+
+                            <tbody>
+                                {sessions.map((session) => (
+                                    <tr
+                                        key={session._id}
+                                        className="border-b border-white/5 hover:bg-white/5 transition-all duration-200"
+                                    >
+                                        <td className="py-4 font-semibold tracking-wide">
+                                            {session.plateNumber}
+                                        </td>
+
+                                        <td>{session.lotId?.name || "N/A"}</td>
+
+                                        <td>{session.slotNumber}</td>
+
+                                        <td>{formatDate(session.entryTime)}</td>
+
+                                        <td>{formatDate(session.exitTime)}</td>
+
+                                        <td>{session.durationMinutes ?? "-"}</td>
+
+                                        <td>
+                                            {session.fare != null
+                                                ? `$${session.fare}`
+                                                : "-"}
+                                        </td>
+
+                                        <td>
+                                            {session.paymentStatus ? (
+                                                <span
+                                                    className={`px-3 py-1 text-xs rounded-full font-medium ${paymentBadge(session.paymentStatus)}`}
+                                                >
+                                                    {session.paymentStatus}
+                                                </span>
+                                            ) : (
+                                                "-"
+                                            )}
+                                        </td>
+
+                                        <td>
+                                            <span
+                                                className={`px-3 py-1 text-xs rounded-full font-medium ${session.status === "IN"
+                                                    ? "bg-blue-500/20 text-blue-400"
+                                                    : "bg-green-500/20 text-green-400"
+                                                    }`}
+                                            >
+                                                {session.status}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+
+                        {/* Pagination */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between mt-6 pt-4 border-t border-white/10">
+                                <p className="text-sm text-neutral-400">
+                                    Showing {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} of {totalCount}
+                                </p>
+
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setPage((p) => Math.max(0, p - 1))}
+                                        disabled={page === 0}
+                                        className="px-4 py-2 text-sm rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                                    >
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                                        disabled={page >= totalPages - 1}
+                                        className="px-4 py-2 text-sm rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>

@@ -82,9 +82,9 @@ export default function Dashboard() {
                 {/* RIGHT STACK */}
                 <div className="space-y-6">
 
-                    <SideMetric icon={TrendingUp} value="+18%" label="vs yesterday" color="text-emerald-400" />
-                    <SideMetric icon={Zap} value="2.4 min" label="Avg park time" color="text-indigo-400" />
-                    <SideMetric icon={BarChart3} value="$2,847" label="Today's revenue" color="text-cyan-400" />
+                    <SideMetric icon={TrendingUp} value={`${data.vsYesterday >= 0 ? "+" : ""}${data.vsYesterday}%`} label="vs yesterday" color="text-emerald-400" />
+                    <SideMetric icon={Zap} value={`${data.avgParkTime} min`} label="Avg park time" color="text-indigo-400" />
+                    <SideMetric icon={BarChart3} value={`$${(data.todayRevenue ?? 0).toLocaleString()}`} label="Today's revenue" color="text-cyan-400" />
 
                 </div>
             </div>
@@ -104,8 +104,8 @@ export default function Dashboard() {
 
             {/* LOWER SECTION */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-12 relative z-10">
-                <RecentActivity />
-                <LotBreakdown />
+                <RecentActivity items={data.recentActivity} />
+                <LotBreakdown lots={data.lotBreakdown} />
             </div>
 
         </div>
@@ -373,7 +373,7 @@ function SideMetric({ icon: Icon, value, label, color }) {
 
 /* ---------- RECENT ACTIVITY ---------- */
 
-function RecentActivity() {
+function RecentActivity({ items = [] }) {
     return (
         <div className="glass-card p-6">
             <div className="flex justify-between items-center mb-6">
@@ -384,9 +384,13 @@ function RecentActivity() {
             </div>
 
             <div className="space-y-4">
-                <ActivityItem plate="ABC-1234" lot="Downtown" type="Entry" />
-                <ActivityItem plate="XYZ-5678" lot="Mall" type="Exit" />
-                <ActivityItem plate="LMN-9981" lot="Campus" type="Entry" />
+                {items.length > 0 ? (
+                    items.map((item, i) => (
+                        <ActivityItem key={i} plate={item.plate} lot={item.lot} type={item.type} />
+                    ))
+                ) : (
+                    <p className="text-sm text-neutral-400">No recent activity</p>
+                )}
             </div>
         </div>
     )
@@ -415,37 +419,35 @@ function ActivityItem({ plate, lot, type }) {
 
 /* ---------- LOT BREAKDOWN ---------- */
 
-function LotBreakdown() {
-    const lots = [
-        { name: "Downtown", used: 16, total: 20 },
-        { name: "Mall", used: 10, total: 15 },
-        { name: "Campus", used: 7, total: 13 },
-    ]
-
+function LotBreakdown({ lots = [] }) {
     return (
         <div className="glass-card p-6">
             <h3 className="text-lg font-medium mb-6">Lot Breakdown</h3>
 
             <div className="space-y-5">
-                {lots.map((lot, i) => {
-                    const percent = Math.round((lot.used / lot.total) * 100)
+                {lots.length > 0 ? (
+                    lots.map((lot, i) => {
+                        const percent = lot.total > 0 ? Math.round((lot.used / lot.total) * 100) : 0
 
-                    return (
-                        <div key={i}>
-                            <div className="flex justify-between text-sm text-neutral-400 mb-2">
-                                <span>{lot.name}</span>
-                                <span>{lot.used}/{lot.total} ({percent}%)</span>
-                            </div>
+                        return (
+                            <div key={i}>
+                                <div className="flex justify-between text-sm text-neutral-400 mb-2">
+                                    <span>{lot.name}</span>
+                                    <span>{lot.used}/{lot.total} ({percent}%)</span>
+                                </div>
 
-                            <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-1000"
-                                    style={{ width: `${percent}%` }}
-                                />
+                                <div className="w-full h-2 bg-white/10 rounded-full overflow-hidden">
+                                    <div
+                                        className="h-full bg-gradient-to-r from-indigo-500 to-cyan-400 transition-all duration-1000"
+                                        style={{ width: `${percent}%` }}
+                                    />
+                                </div>
                             </div>
-                        </div>
-                    )
-                })}
+                        )
+                    })
+                ) : (
+                    <p className="text-sm text-neutral-400">No lots available</p>
+                )}
             </div>
         </div>
     )
