@@ -4,10 +4,11 @@ This file provides guidance to WARP (warp.dev) when working with code in this re
 
 ## Project Overview
 
-Smart Parking System is a full-stack application for managing parking lots, slots, and sessions. It has three components:
+Smart Parking System is a full-stack application for managing parking lots, slots, and sessions. It has four components:
 - **Backend**: Express.js REST API with MongoDB (Mongoose)
 - **Frontend (Admin Portal)**: React/Vite web app for parking lot administrators
 - **Mobile App**: Expo/React Native app for end-users
+- **ANPR Service**: Python FastAPI microservice for automatic number plate recognition (YOLOv8 + EasyOCR)
 
 ## Common Commands
 
@@ -35,6 +36,13 @@ cd mobile && npm run ios      # iOS simulator
 cd mobile && npm run lint     # ESLint
 ```
 
+### ANPR Service
+```bash
+cd anpr-service && python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+python main.py                # Runs on port 8000 by default
+```
+
 ## Architecture
 
 ### Backend Service Layer
@@ -42,6 +50,17 @@ Business logic is abstracted into service classes in `backend/src/services/`:
 - `ParkingService` - Entry/exit flow, slot allocation, session management
 - `WalletService` - Balance operations, fare deduction
 - `NotificationService` - Firebase push notifications (gracefully disabled if unconfigured)
+
+### ANPR Service Architecture
+The ANPR microservice (`anpr-service/`) provides camera-based plate detection:
+- `anpr/image_detector.py` - YOLOv8-based plate detection
+- `anpr/image_processor.py` - OpenCV preprocessing (crop, grayscale, contrast, upscale)
+- `anpr/ocr.py` - EasyOCR text extraction (GPU configurable via `ANPR_USE_GPU`)
+- `anpr/plate_rules.py` - Indian plate format normalization (handles OCR misreads)
+- `anpr/pipeline.py` - Orchestrates detection → preprocess → OCR → normalize
+- `main.py` - FastAPI app with `POST /detect` endpoint
+
+The Express backend has `/api/anpr/*` routes that accept image uploads (via multer), forward to the ANPR service, and delegate to `ParkingService` for entry/exit.
 
 ### Dual Authentication System
 The backend has two separate auth flows with role-based JWT tokens:
@@ -79,6 +98,11 @@ ParkingLot (1) ──── (N) ParkingSlot (1) ──── (0..1) ParkingSessi
 - `/api/user/wallet` - Wallet operations
 - `/api/user/*` - User app features (lots, sessions, vehicles)
 
+**ANPR routes** (no auth, for hardware integration):
+- `/api/anpr/detect` - Standalone plate detection
+- `/api/anpr/entry` - Image upload → detect plate → entry flow
+- `/api/anpr/exit` - Image upload → detect plate → exit flow
+
 ### Frontend Architecture
 - **Routing**: `App.jsx` defines public `/login` route; all other routes use `AppLayout` wrapper with `ProtectedRoute` HOC
 - **Auth**: Token stored in `localStorage`, auto-attached via axios interceptor in `services/api.js`
@@ -106,6 +130,16 @@ PORT=5000
 # Firebase (optional, for push notifications):
 FIREBASE_SERVICE_ACCOUNT=<json_string>   # OR
 FIREBASE_SERVICE_ACCOUNT_PATH=<path_to_key.json>
+# ANPR Service (optional, defaults to localhost:8000):
+ANPR_SERVICE_URL=http://localhost:8000
+```
+
+ANPR Service env vars (all optional):
+```
+ANPR_PORT=8000           # Service port
+ANPR_USE_GPU=false       # Enable GPU for OCR
+ANPR_DEBUG=false         # Debug mode
+ANPR_MODEL_PATH=models/best.pt  # YOLOv8 weights path
 ```
 
 For local development, update API base URLs:

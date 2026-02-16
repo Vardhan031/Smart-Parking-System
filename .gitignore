@@ -38,6 +38,17 @@ expo-env.d.ts
 mobile/ios/
 mobile/android/
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+*.egg-info/
+
+# ANPR model weights
+anpr-service/models/*.pt
+
 # IDE
 .idea/
 .vscode/

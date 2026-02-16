@@ -10,6 +10,7 @@ const sessionRoutes = require("./src/routes/sessions.routes.js");
 const userAuthRoutes = require("./src/routes/userAuth.routes.js");
 const userWalletRoutes = require("./src/routes/userWallet.routes.js");
 const userAppRoutes = require("./src/routes/userApp.routes.js");
+const anprRoutes = require("./src/routes/anpr.routes.js");
 
 const app = express();
 
@@ -41,9 +42,7 @@ app.use("/api/user/wallet", userWalletRoutes);
 
 app.use("/api/user", userAppRoutes);
 
-
-
-
+app.use("/api/anpr", anprRoutes);
 
 const PORT = process.env.PORT || 5000;
 
