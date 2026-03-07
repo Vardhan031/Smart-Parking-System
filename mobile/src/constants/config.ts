@@ -3,7 +3,7 @@ import { Platform } from "react-native";
 // Override this in local dev with:
 // EXPO_PUBLIC_API_BASE_URL=http://<host>:5000/api
 const DEFAULT_WEB_API_BASE_URL = "http://localhost:5000/api";
-const DEFAULT_NATIVE_API_BASE_URL = "http://192.168.1.18:5000/api";
+const DEFAULT_NATIVE_API_BASE_URL = "http://10.56.209.207:5000/api";
 
 export const API_BASE_URL =
   process.env.EXPO_PUBLIC_API_BASE_URL ||

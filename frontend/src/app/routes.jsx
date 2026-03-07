@@ -2,6 +2,7 @@ import Dashboard from "../pages/Dashboard"
 import ParkingSlots from "../pages/ParkingSlots"
 import ParkingLots from "../pages/ParkingLots"
 import ParkingSessions from "../pages/ParkingSessions"
+import GateControl from "../pages/GateControl"
 import Vehicles from "../pages/Vehicles"
 import Analytics from "../pages/Analytics"
 import Settings from "../pages/Settings"
@@ -39,6 +40,14 @@ export const routes = [
         element: (
             <ProtectedRoute>
                 <ParkingSessions />
+            </ProtectedRoute>
+        ),
+    },
+    {
+        path: "/gate",
+        element: (
+            <ProtectedRoute>
+                <GateControl />
             </ProtectedRoute>
         ),
     },

@@ -9,8 +9,12 @@ class ParkingService {
 
     /**
      * 🚗 ENTRY FLOW
+     * @param {string} plateNumber  - Vehicle plate (will be normalised to uppercase)
+     * @param {string} lotId        - Parking lot ObjectId
+     * @param {string} vehicleType  - "CAR" | "BIKE" (default: "CAR")
+     * @param {Date|null} entryTime - Timestamp from CCTV overlay; falls back to now()
      */
-    static async handleEntry({ plateNumber, lotId, vehicleType = "CAR" }) {
+    static async handleEntry({ plateNumber, lotId, vehicleType = "CAR", entryTime = null }) {
         plateNumber = plateNumber.trim().toUpperCase();
 
         // 1️⃣ Check if vehicle already inside
@@ -41,12 +45,12 @@ class ParkingService {
             };
         }
 
-        // 3️⃣ Create session
+        // 3️⃣ Create session — use camera timestamp when available for accurate fare calculation
         const session = await ParkingSession.create({
             plateNumber,
             lotId,
             slotNumber: availableSlot.slotNumber,
-            entryTime: new Date(),
+            entryTime: (entryTime instanceof Date && !isNaN(entryTime)) ? entryTime : new Date(),
             status: "IN"
         });
 
@@ -87,8 +91,11 @@ class ParkingService {
 
     /**
      * 🚗 EXIT FLOW
+     * @param {string} plateNumber - Vehicle plate
+     * @param {string} lotId       - Parking lot ObjectId
+     * @param {Date|null} exitTime - Timestamp from CCTV overlay; falls back to now()
      */
-    static async handleExit({ plateNumber, lotId }) {
+    static async handleExit({ plateNumber, lotId, exitTime = null }) {
         plateNumber = plateNumber.trim().toUpperCase();
 
         // 1️⃣ Find active session
@@ -106,8 +113,8 @@ class ParkingService {
             };
         }
 
-        // 2️⃣ Update session (duration & fare auto-calculated in model pre-save)
-        session.exitTime = new Date();
+        // 2️⃣ Update session — use camera timestamp so fare reflects actual duration
+        session.exitTime = (exitTime instanceof Date && !isNaN(exitTime)) ? exitTime : new Date();
         session.status = "OUT";
         await session.save();
 

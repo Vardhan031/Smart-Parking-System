@@ -1,0 +1,53 @@
+services:
+  # ── MongoDB ──────────────────────────────────────────────────────────────────
+  mongodb:
+    image: mongo:7
+    volumes:
+      - mongodb_data:/data/db
+    restart: unless-stopped
+
+  # ── Backend (Express API) ─────────────────────────────────────────────────────
+  backend:
+    build: ./backend
+    ports:
+      - "5000:5000"
+    environment:
+      MONGO_URI: mongodb://mongodb:27017/smart-parking
+      JWT_SECRET: ${JWT_SECRET}
+      PORT: 5000
+      ANPR_SERVICE_URL: http://anpr:8000
+      # Optional — leave blank if not using push notifications
+      FIREBASE_SERVICE_ACCOUNT: ${FIREBASE_SERVICE_ACCOUNT:-}
+      FIREBASE_SERVICE_ACCOUNT_PATH: ${FIREBASE_SERVICE_ACCOUNT_PATH:-}
+    depends_on:
+      - mongodb
+    restart: unless-stopped
+
+  # ── ANPR Service (FastAPI) ────────────────────────────────────────────────────
+  anpr:
+    build: ./anpr-service
+    ports:
+      - "8001:8000"
+    volumes:
+      # Mount model weights from the host (excluded from the image via .dockerignore)
+      - ./anpr-service/models:/app/models:ro
+    environment:
+      ANPR_MODEL_PATH: ${ANPR_MODEL_PATH:-models/best.pt}
+      ANPR_USE_GPU: ${ANPR_USE_GPU:-false}
+    restart: unless-stopped
+
+  # ── Frontend (Admin Portal — nginx) ──────────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Backend URL as seen by the browser — keep as localhost if running locally
+        VITE_API_BASE_URL: ${VITE_API_BASE_URL:-http://localhost:5000/api}
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  mongodb_data:

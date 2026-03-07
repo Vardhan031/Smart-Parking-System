@@ -2,6 +2,7 @@ import {
     LayoutDashboard,
     ParkingSquare,
     Clock,
+    ScanLine,
     Car,
     BarChart3,
     Settings
@@ -37,6 +38,7 @@ export default function Sidebar() {
                     <div className="space-y-2">
                         <SidebarItem icon={ParkingSquare} label="Parking Lots" to="/lots" />
                         <SidebarItem icon={Clock} label="Sessions" to="/sessions" />
+                        <SidebarItem icon={ScanLine} label="Gate Control" to="/gate" />
                     </div>
                 </div>
 
