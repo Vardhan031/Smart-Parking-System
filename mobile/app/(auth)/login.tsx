@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import {
   Text,
   TextInput,
@@ -9,19 +9,24 @@ import {
   View,
   ScrollView,
 } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
 import { showAlert } from "@/utils/alert";
 import { Link } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import {
-  Colors,
   Spacing,
   FontSize,
   BorderRadius,
   Shadows,
+  FontFamily,
+  type ColorPalette,
 } from "@/constants/theme";
 
 export default function LoginScreen() {
+  const { Colors, isDark } = useTheme();
+  const styles = useMemo(() => makeStyles(Colors), [Colors]);
   const { login } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -66,13 +71,16 @@ export default function LoginScreen() {
         keyboardShouldPersistTaps="handled"
       >
         {/* Brand */}
-        <View style={styles.brandSection}>
+        <LinearGradient
+          colors={isDark ? ["#1E3A5F", "transparent"] : ["#EFF6FF", "transparent"]}
+          style={styles.brandSection}
+        >
           <View style={styles.iconCircle}>
             <Ionicons name="car-sport" size={32} color={Colors.primary} />
           </View>
           <Text style={styles.title}>Smart Parking</Text>
           <Text style={styles.subtitle}>Sign in to your account</Text>
-        </View>
+        </LinearGradient>
 
         {/* Form */}
         <View style={styles.formCard}>
@@ -150,97 +158,104 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  wrapper: {
-    flex: 1,
-    backgroundColor: Colors.background,
-  },
-  container: {
-    flexGrow: 1,
-    justifyContent: "center",
-    padding: Spacing.lg,
-  },
-  brandSection: {
-    alignItems: "center",
-    marginBottom: Spacing.xl,
-  },
-  iconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: Colors.primaryGhost,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: Spacing.md,
-  },
-  title: {
-    fontSize: FontSize.xxl,
-    fontWeight: "800",
-    color: Colors.text,
-    letterSpacing: -0.5,
-  },
-  subtitle: {
-    fontSize: FontSize.md,
-    color: Colors.textSecondary,
-    marginTop: Spacing.xs,
-  },
-  formCard: {
-    backgroundColor: Colors.surface,
-    borderRadius: BorderRadius.xl,
-    padding: Spacing.lg,
-    ...Shadows.md,
-  },
-  inputGroup: {
-    marginBottom: Spacing.md,
-  },
-  label: {
-    fontSize: FontSize.sm,
-    fontWeight: "600",
-    color: Colors.text,
-    marginBottom: Spacing.xs + 2,
-  },
-  inputWrapper: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: Colors.background,
-    borderWidth: 1,
-    borderColor: Colors.border,
-    borderRadius: BorderRadius.md,
-    paddingHorizontal: Spacing.sm + 4,
-    gap: Spacing.sm,
-  },
-  input: {
-    flex: 1,
-    paddingVertical: Spacing.sm + 4,
-    fontSize: FontSize.md,
-    color: Colors.text,
-  },
-  button: {
-    backgroundColor: Colors.primary,
-    paddingVertical: Spacing.sm + 6,
-    borderRadius: BorderRadius.md,
-    alignItems: "center",
-    marginTop: Spacing.sm,
-  },
-  buttonDisabled: {
-    backgroundColor: Colors.disabled,
-  },
-  buttonPressed: {
-    backgroundColor: Colors.primaryDark,
-  },
-  buttonText: {
-    color: Colors.surface,
-    fontSize: FontSize.md,
-    fontWeight: "700",
-  },
-  link: {
-    color: Colors.textSecondary,
-    textAlign: "center",
-    marginTop: Spacing.lg,
-    fontSize: FontSize.sm,
-  },
-  linkBold: {
-    color: Colors.primary,
-    fontWeight: "700",
-  },
-});
+function makeStyles(Colors: ColorPalette) {
+  return StyleSheet.create({
+    wrapper: {
+      flex: 1,
+      backgroundColor: Colors.background,
+    },
+    container: {
+      flexGrow: 1,
+      justifyContent: "center",
+      padding: Spacing.lg,
+    },
+    brandSection: {
+      alignItems: "center",
+      marginBottom: Spacing.xl,
+      borderRadius: BorderRadius.lg,
+      paddingVertical: Spacing.lg,
+    },
+    iconCircle: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: Colors.primaryGhost,
+      justifyContent: "center",
+      alignItems: "center",
+      marginBottom: Spacing.md,
+    },
+    title: {
+      fontSize: FontSize.xxl,
+      fontFamily: FontFamily.extraBold,
+      color: Colors.text,
+      letterSpacing: -0.5,
+    },
+    subtitle: {
+      fontSize: FontSize.md,
+      fontFamily: FontFamily.regular,
+      color: Colors.textSecondary,
+      marginTop: Spacing.xs,
+    },
+    formCard: {
+      backgroundColor: Colors.surface,
+      borderRadius: BorderRadius.xl,
+      padding: Spacing.lg,
+      ...Shadows.md,
+    },
+    inputGroup: {
+      marginBottom: Spacing.md,
+    },
+    label: {
+      fontSize: FontSize.sm,
+      fontFamily: FontFamily.semiBold,
+      color: Colors.text,
+      marginBottom: Spacing.xs + 2,
+    },
+    inputWrapper: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: Colors.background,
+      borderWidth: 1,
+      borderColor: Colors.border,
+      borderRadius: BorderRadius.md,
+      paddingHorizontal: Spacing.smPlus,
+      gap: Spacing.sm,
+    },
+    input: {
+      flex: 1,
+      paddingVertical: Spacing.smPlus,
+      fontSize: FontSize.md,
+      fontFamily: FontFamily.regular,
+      color: Colors.text,
+    },
+    button: {
+      backgroundColor: Colors.primary,
+      paddingVertical: Spacing.sm + 6,
+      borderRadius: BorderRadius.md,
+      alignItems: "center",
+      marginTop: Spacing.sm,
+    },
+    buttonDisabled: {
+      backgroundColor: Colors.disabled,
+    },
+    buttonPressed: {
+      backgroundColor: Colors.primaryDark,
+    },
+    buttonText: {
+      color: Colors.surface,
+      fontSize: FontSize.md,
+      fontFamily: FontFamily.bold,
+    },
+    link: {
+      color: Colors.textSecondary,
+      textAlign: "center",
+      marginTop: Spacing.lg,
+      fontSize: FontSize.sm,
+      fontFamily: FontFamily.regular,
+    },
+    linkBold: {
+      color: Colors.primary,
+      fontFamily: FontFamily.bold,
+    },
+  });
+}
