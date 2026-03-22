@@ -4,20 +4,21 @@ export default function SidebarItem({ icon: Icon, label, to }) {
     return (
         <NavLink
             to={to}
+            end={to === "/"}
             className={({ isActive }) => `
-                group
                 flex items-center gap-3
-                px-4 py-3
-                rounded-xl
+                px-3 py-2.5
+                rounded-lg
                 text-sm font-medium
-                transition-all duration-300
+                transition-all duration-200
+                cursor-pointer
                 ${isActive
-                    ? "bg-white/10 border border-white/10 text-white shadow-lg"
-                    : "text-neutral-400 hover:bg-white/5 hover:text-white"
+                    ? "bg-indigo-500/10 text-white [&>svg]:text-indigo-400"
+                    : "text-neutral-400 hover:bg-white/[0.04] hover:text-neutral-200 [&>svg]:text-neutral-500"
                 }
             `}
         >
-            <Icon size={18} className="opacity-80 group-hover:opacity-100" />
+            <Icon size={16} className="shrink-0 transition-colors" />
             <span>{label}</span>
         </NavLink>
     )
